@@ -32,7 +32,7 @@ type mockConn struct {
 	sn *session.Session
 }
 
-func (c *mockConn) getEC2Region(s *session.Session) (string, error) {
+func (c *mockConn) getEC2Region(_ *session.Session) (string, error) {
 	args := c.Called(nil)
 	errorStr := args.String(0)
 	var err error

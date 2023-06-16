@@ -20,16 +20,17 @@ See the component-specific guides for how each uses error mode:
 - [routingprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/routingprocessor#tech-preview-opentelemetry-transformation-language-statements-as-routing-conditions)
 - [transformprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor#config)
 
-## Functions
+## Editors
 
-Functions are what OTTL uses to transform telemetry.
+Editors are what OTTL uses to transform telemetry.
 
-Functions:
+Editors:
+
 - Are allowed to transform telemetry.  When a Function is invoked the expectation is that the underlying telemetry is modified in some way.
 - May have side effects.  Some Functions may generate telemetry and add it to the telemetry payload to be processed in this batch.
 - May return values.  Although not common and not required, Functions may return values.
 
-Available Functions:
+Available Editors:
 - [delete_key](#delete_key)
 - [delete_matching_keys](#delete_matching_keys)
 - [keep_keys](#keep_keys)
@@ -262,13 +263,20 @@ Unlike functions, they do not modify any input telemetry and always return a val
 Available Converters:
 - [Concat](#concat)
 - [ConvertCase](#convertcase)
+- [FNV](#fnv)
 - [Int](#int)
+- [IsMap](#ismap)
 - [IsMatch](#ismatch)
+- [IsString](#isstring)
+- [Log](#log)
 - [ParseJSON](#parsejson)
+- [SHA1](#sha1)
+- [SHA256](#sha256)
 - [SpanID](#spanid)
 - [Split](#split)
 - [TraceID](#traceid)
 - [Substring](#substring)
+- [UUID](#UUID)
 
 ### Concat
 
@@ -313,6 +321,25 @@ Examples:
 
 - `ConvertCase(metric.name, "snake")`
 
+### FNV
+
+`FNV(value)`
+
+The `FNV` Converter converts the `value` to an FNV hash/digest.
+
+The returned type is int64.
+
+`value` is either a path expression to a string telemetry field or a literal string. If `value` is another type an error is returned.
+
+If an error occurs during hashing it will be returned.
+
+Examples:
+
+- `FNV(attributes["device.name"])`
+
+
+- `FNV("name")`
+
 ### Int
 
 `Int(value)`
@@ -337,6 +364,23 @@ Examples:
 
 
 - `Int("2.0")`
+
+### IsMap
+
+`IsMap(value)`
+
+The `IsMap` Converter returns true if the given value is a map.
+
+The `value` is either a path expression to a telemetry field to retrieve or a literal.
+
+If `value` is a `map[string]any` or a `pcommon.ValueTypeMap` then returns `true`, otherwise returns `false`.
+
+Examples:
+
+- `IsMap(body)`
+
+
+- `IsMap(attributes["maybe a map"])`
 
 ### IsMatch
 
@@ -363,6 +407,48 @@ Examples:
 
 
 - `IsMatch("string", ".*ring")`
+
+### IsString
+
+`IsString(value)`
+
+The `IsString` Converter returns true if the given value is a string.
+
+The `value` is either a path expression to a telemetry field to retrieve or a literal.
+
+If `value` is a `string` or a `pcommon.ValueTypeStr` then returns `true`, otherwise returns `false`.
+
+Examples:
+
+- `IsString(body)`
+
+- `IsString(attributes["maybe a string"])`
+
+### Log
+
+`Log(value)`
+
+The `Log` Converter returns the logarithm of the `target`.
+
+`target` is either a path expression to a telemetry field to retrieve or a literal.
+
+The function take the logarithm of the target, returning an error if the target is less than or equal to zero.
+
+If target is not a float64, it will be converted to one:
+
+- int64s are converted to float64s
+- strings are converted using `strconv`
+- booleans are converted using `1` for `true` and `0` for `false`.  This means passing `false` to the function will cause an error.
+- int, float, string, and bool OTLP Values are converted following the above rules depending on their type.  Other types cause an error.
+
+If target is nil an error is returned.
+
+Examples:
+
+- `Log(attributes["duration_ms"])`
+
+
+- `Int(Log(attributes["duration_ms"])`
 
 ### ParseJSON
 
@@ -394,6 +480,48 @@ Examples:
 
 
 - `ParseJSON(body)`
+
+### SHA1
+
+`SHA1(value)`
+
+The `SHA1` Converter converts the `value` to a sha1 hash/digest.
+
+The returned type is string.
+
+`value` is either a path expression to a string telemetry field or a literal string. If `value` is another type an error is returned.
+
+If an error occurs during hashing it will be returned.
+
+Examples:
+
+- `SHA1(attributes["device.name"])`
+
+
+- `SHA1("name")`
+
+**Note:** According to the National Institute of Standards and Technology (NIST), SHA1 is no longer a recommended hash function. It should be avoided except when required for compatibility. New uses should prefer FNV whenever possible.
+
+### SHA256
+
+`SHA256(value)`
+
+The `SHA256` Converter converts the `value` to a sha256 hash/digest.
+
+The returned type is string.
+
+`value` is either a path expression to a string telemetry field or a literal string. If `value` is another type an error is returned.
+
+If an error occurs during hashing it will be returned.
+
+Examples:
+
+- `SHA256(attributes["device.name"])`
+
+
+- `SHA256("name")`
+
+**Note:** According to the National Institute of Standards and Technology (NIST), SHA256 is no longer a recommended hash function. It should be avoided except when required for compatibility. New uses should prefer FNV whenever possible.
 
 ### SpanID
 
@@ -447,6 +575,12 @@ If the start/length exceed the length of the `target` string, an error is return
 Examples:
 
 - `Substring("123456789", 0, 3)`
+
+### UUID
+
+`UUID()`
+
+The `UUID` function generates a v4 uuid string.
 
 ## Function syntax
 
