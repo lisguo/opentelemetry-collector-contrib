@@ -34,7 +34,7 @@ const (
 	fieldPrometheusMetricType = "prom_metric_type"
 )
 
-var errMissingMetricsForEnhancedContainerInsights = errors.New("Dropping empty putLogEvents for EnhancedContainerInsights")
+var errMissingMetricsForEnhancedContainerInsights = errors.New("nil event detected with EnhancedContainerInsights enabled")
 
 var fieldPrometheusTypes = map[pmetric.MetricType]string{
 	pmetric.MetricTypeEmpty:     "",

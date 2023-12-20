@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/amazon-contributing/opentelemetry-collector-contrib/extension/awsmiddleware"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/collector/component"
@@ -19,6 +18,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
+
+	"github.com/amazon-contributing/opentelemetry-collector-contrib/extension/awsmiddleware"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/cwlogs"
@@ -123,6 +124,7 @@ func (emf *emfExporter) pushMetricsData(_ context.Context, md pmetric.Metrics) e
 		putLogEvent, err := translateGroupedMetricToEmf(groupedMetric, emf.config, defaultLogStream)
 		if err != nil {
 			if errors.Is(err, errMissingMetricsForEnhancedContainerInsights) {
+				emf.config.logger.Debug("Dropping empty putLogEvents for enhanced container insights", zap.Error(err))
 				continue
 			}
 			return err
