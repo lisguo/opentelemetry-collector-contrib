@@ -599,7 +599,7 @@ func TestTranslateGroupedMetricToEmfForEnhancedContainerInsights(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := translateGroupedMetricToEmf(tt.groupedMetric, tt.config, tt.defaultLogStream)
-			if (err != nil) && !errors.Is(err, tt.expectedErr) {
+			if err != nil && !errors.Is(err, tt.expectedErr) {
 				t.Errorf("translateGroupedMetricToEmf() error = %v, expectedErr %v", err, tt.expectedErr)
 				return
 			}
